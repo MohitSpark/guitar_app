@@ -1,0 +1,291 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/guitar_provider.dart';
+
+class SettingsPanelWidget extends StatelessWidget {
+  const SettingsPanelWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GuitarProvider>(
+      builder: (context, provider, _) {
+        return ListView(
+          padding: const EdgeInsets.all(10),
+          children: [
+            _buildSection('DISPLAY'),
+            _buildToggleTile(
+              title: 'Show Fret Numbers',
+              subtitle: 'Display numbers above each fret',
+              icon: Icons.format_list_numbered,
+              value: provider.showFretNumbers,
+              onChanged: (_) => provider.toggleFretNumbers(),
+            ),
+            _buildToggleTile(
+              title: 'Show Note Names',
+              subtitle: 'Display note names on the neck',
+              icon: Icons.text_fields,
+              value: provider.showNoteNames,
+              onChanged: (_) => provider.toggleNoteNames(),
+            ),
+            _buildToggleTile(
+              title: 'Left-Handed Mode',
+              subtitle: 'Mirror the guitar for left-handed players',
+              icon: Icons.swap_horiz,
+              value: provider.leftHanded,
+              onChanged: (_) => provider.toggleLeftHanded(),
+            ),
+
+            _buildSection('AUDIO'),
+            _buildSliderTile(
+              title: 'Volume',
+              icon: Icons.volume_up,
+              value: provider.volume,
+              onChanged: (v) => provider.setVolume(v),
+            ),
+            _buildToggleTile(
+              title: 'Mute',
+              subtitle: 'Silence all guitar sounds',
+              icon: Icons.volume_off,
+              value: provider.isMuted,
+              onChanged: (_) => provider.toggleMute(),
+              activeColor: Colors.orange,
+            ),
+
+            _buildSection('FEEDBACK'),
+            _buildToggleTile(
+              title: 'Vibration',
+              subtitle: 'Haptic feedback when playing notes',
+              icon: Icons.vibration,
+              value: provider.vibrateOnPlay,
+              onChanged: (_) => provider.toggleVibrate(),
+            ),
+
+            _buildSection('ABOUT'),
+            _buildInfoTile(
+              title: 'Guitar Pro',
+              subtitle: 'Version 1.0.0',
+              icon: Icons.info_outline,
+            ),
+            _buildInfoTile(
+              title: 'Standard Tuning',
+              subtitle: 'E A D G B e (440 Hz)',
+              icon: Icons.music_note,
+            ),
+            _buildInfoTile(
+              title: '12 Frets Visible',
+              subtitle: 'Swipe neck to navigate',
+              icon: Icons.swipe,
+            ),
+
+            const SizedBox(height: 20),
+            // Reset button
+            GestureDetector(
+              onTap: () => _showResetDialog(context, provider),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.refresh, color: Colors.red, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Reset to Defaults',
+                      style: TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSection(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Color(0xFFDAA520),
+          fontSize: 10,
+          letterSpacing: 2,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    Color? activeColor,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: value
+            ? (activeColor ?? const Color(0xFFDAA520)).withOpacity(0.08)
+            : Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: value
+              ? (activeColor ?? const Color(0xFFDAA520)).withOpacity(0.3)
+              : Colors.white.withOpacity(0.06),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(icon,
+              color: value
+                  ? (activeColor ?? const Color(0xFFDAA520))
+                  : Colors.white38,
+              size: 16),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: value ? Colors.white : Colors.white54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white24, fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: activeColor ?? const Color(0xFFDAA520),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliderTile({
+    required String title,
+    required IconData icon,
+    required double value,
+    required ValueChanged<double> onChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.white38, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const Spacer(),
+              Text(
+                '${(value * 100).round()}%',
+                style: const TextStyle(color: Color(0xFFDAA520), fontSize: 11),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderThemeData(
+              trackHeight: 2,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+              activeTrackColor: const Color(0xFFDAA520),
+              inactiveTrackColor: Colors.white.withOpacity(0.15),
+              thumbColor: const Color(0xFFDAA520),
+            ),
+            child: Slider(value: value, onChanged: onChanged),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.02),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white24, size: 14),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(subtitle,
+                  style: const TextStyle(color: Colors.white24, fontSize: 9)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResetDialog(BuildContext context, GuitarProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2d1500),
+        title: const Text('Reset Settings?',
+            style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'This will reset all settings to their defaults.',
+          style: TextStyle(color: Colors.white54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Reset to defaults
+              if (provider.isMuted) provider.toggleMute();
+              provider.setVolume(0.8);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Reset', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
