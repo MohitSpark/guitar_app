@@ -14,40 +14,47 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
     with TickerProviderStateMixin {
   final int _visibleFrets = 12;
   int _startFret = 0;
-  final Map<String, AnimationController> _stringControllers = {};
-  final Map<String, Animation<double>> _stringAnimations = {};
+
+  // Smooth slide tracking
+  int _lastPlayedString = -1;
+  int _lastPlayedFretVal = -1;
+  bool _isSliding = false;
+  int _lastPlayedMs = 0;
+  static const int _slideThrottleMs = 55; // min ms between notes while sliding
 
   @override
   void initState() {
     super.initState();
-    // Create vibration animations for each string
-    for (int i = 0; i < 6; i++) {
-      for (int j = 0; j <= 12; j++) {
-        final key = '${i}_$j';
-        final controller = AnimationController(
-          vsync: this,
-          duration: const Duration(milliseconds: 400),
-        );
-        final animation = Tween<double>(begin: 0, end: 1).animate(
-          CurvedAnimation(parent: controller, curve: Curves.elasticOut),
-        );
-        _stringControllers[key] = controller;
-        _stringAnimations[key] = animation;
-      }
-    }
   }
 
   @override
   void dispose() {
-    for (final c in _stringControllers.values) {
-      c.dispose();
-    }
     super.dispose();
   }
 
-  void _triggerStringAnimation(int stringIndex, int fret) {
-    final key = '${stringIndex}_$fret';
-    _stringControllers[key]?.forward(from: 0.0);
+  void _tryPlay(GuitarProvider provider, int stringIndex, int actualFret,
+      {bool reset = false}) {
+    if (reset) {
+      _lastPlayedString = -1;
+      _lastPlayedFretVal = -1;
+      _lastPlayedMs = 0;
+    }
+
+    // Skip if identical string+fret
+    if (_lastPlayedString == stringIndex && _lastPlayedFretVal == actualFret) {
+      return;
+    }
+
+    // Throttle rapid events during slide to keep audio clean
+    if (_isSliding) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now - _lastPlayedMs < _slideThrottleMs) return;
+      _lastPlayedMs = now;
+    }
+
+    _lastPlayedString = stringIndex;
+    _lastPlayedFretVal = actualFret;
+    provider.playString(stringIndex, actualFret);
   }
 
   @override
@@ -68,9 +75,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
           ),
           child: Column(
             children: [
-              // Fret navigation header
               _buildFretNavigation(provider),
-              // Main neck
               Expanded(
                 child: GestureDetector(
                   onHorizontalDragEnd: (details) {
@@ -78,7 +83,8 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
                       setState(() {
                         if (details.primaryVelocity! < 0 && _startFret < 12) {
                           _startFret = (_startFret + 2).clamp(0, 12);
-                        } else if (details.primaryVelocity! > 0 && _startFret > 0) {
+                        } else if (details.primaryVelocity! > 0 &&
+                            _startFret > 0) {
                           _startFret = (_startFret - 2).clamp(0, 12);
                         }
                       });
@@ -101,7 +107,6 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
                   ),
                 ),
               ),
-              // Open string labels
               _buildOpenStringLabels(provider),
             ],
           ),
@@ -116,7 +121,6 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
       color: const Color(0xFF1A0A00),
       child: Row(
         children: [
-          // Position indicator
           Padding(
             padding: const EdgeInsets.only(left: 12),
             child: Text(
@@ -125,24 +129,23 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
             ),
           ),
           const Spacer(),
-          // Capo button
           TextButton.icon(
             onPressed: () => _showCapoDialog(context, provider),
-            icon: const Icon(Icons.music_note, size: 12, color: Color(0xFFDAA520)),
+            icon: const Icon(Icons.music_note,
+                size: 12, color: Color(0xFFDAA520)),
             label: Text(
               provider.capoFret > 0 ? 'Capo ${provider.capoFret}' : 'Capo',
               style: const TextStyle(color: Color(0xFFDAA520), fontSize: 11),
             ),
             style: TextButton.styleFrom(minimumSize: const Size(60, 28)),
           ),
-          // Position dots
           SizedBox(
             width: 120,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 7,
-                (i) => GestureDetector(
+                    (i) => GestureDetector(
                   onTap: () => setState(() => _startFret = i * 2),
                   child: Container(
                     width: 12,
@@ -171,30 +174,50 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
         final fretWidth = constraints.maxWidth / _visibleFrets;
         final stringHeight = constraints.maxHeight / 6;
 
-        return Stack(
-          children: [
-            for (int s = 0; s < 6; s++)
-              for (int f = 0; f <= _visibleFrets; f++)
-                Positioned(
-                  left: f == 0 ? 0 : (f - 0.5) * fretWidth,
-                  top: s * stringHeight,
-                  width: fretWidth,
-                  height: stringHeight,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
-                    onTap: () {
-                      final actualFret = f + _startFret;
-                      _triggerStringAnimation(s, f);
-                      provider.playString(s, actualFret);
-                    },
-                    child: Container(color: Colors.transparent),
-                  ),
-                ),
-          ],
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+
+          onTapDown: (details) {
+            final s = _stringFromDy(details.localPosition.dy, stringHeight);
+            final f = _fretFromDx(details.localPosition.dx, fretWidth);
+            _isSliding = false;
+            _tryPlay(provider, s, f + _startFret, reset: true);
+          },
+
+          onPanStart: (details) {
+            _isSliding = true;
+            _lastPlayedMs = 0;
+            final s = _stringFromDy(details.localPosition.dy, stringHeight);
+            final f = _fretFromDx(details.localPosition.dx, fretWidth);
+            _tryPlay(provider, s, f + _startFret, reset: true);
+          },
+
+          // No setState here — zero rebuilds during slide, butter smooth
+          onPanUpdate: (details) {
+            final s = _stringFromDy(details.localPosition.dy, stringHeight);
+            final f = _fretFromDx(details.localPosition.dx, fretWidth);
+            _tryPlay(provider, s, f + _startFret);
+          },
+
+          onPanEnd: (_) {
+            _isSliding = false;
+            _lastPlayedString = -1;
+            _lastPlayedFretVal = -1;
+          },
+
+          child: Container(color: Colors.transparent),
         );
       },
     );
   }
+
+  /// Converts local dx → fret index.
+  int _fretFromDx(double dx, double fretWidth) =>
+      (dx / fretWidth).floor().clamp(0, _visibleFrets);
+
+  /// Converts local dy → string index (0 = thickest/top string).
+  int _stringFromDy(double dy, double stringHeight) =>
+      (dy / stringHeight).floor().clamp(0, 5);
 
   Widget _buildOpenStringLabels(GuitarProvider provider) {
     const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
@@ -206,7 +229,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
           const SizedBox(width: 8),
           ...List.generate(
             6,
-            (i) => Expanded(
+                (i) => Expanded(
               child: GestureDetector(
                 onTap: () => provider.playString(i, 0),
                 child: Center(
@@ -251,13 +274,14 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2d1500),
-        title: const Text('Set Capo', style: TextStyle(color: Color(0xFFDAA520))),
+        title:
+        const Text('Set Capo', style: TextStyle(color: Color(0xFFDAA520))),
         content: Wrap(
           spacing: 8,
           runSpacing: 8,
           children: List.generate(
             8,
-            (i) => GestureDetector(
+                (i) => GestureDetector(
               onTap: () {
                 provider.setCapo(i);
                 Navigator.pop(ctx);
@@ -275,7 +299,8 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
                   child: Text(
                     i == 0 ? 'Off' : '$i',
                     style: TextStyle(
-                      color: provider.capoFret == i ? Colors.black : Colors.white,
+                      color:
+                      provider.capoFret == i ? Colors.black : Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -289,7 +314,9 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
   }
 }
 
-// Custom painter for the guitar neck
+// ─────────────────────────────────────────────────────────────────────────────
+// Custom painter — unchanged from original
+// ─────────────────────────────────────────────────────────────────────────────
 class GuitarNeckPainter extends CustomPainter {
   final int visibleFrets;
   final int startFret;
@@ -315,7 +342,9 @@ class GuitarNeckPainter extends CustomPainter {
     required this.capoFret,
   });
 
-  static const List<double> stringThicknesses = [3.5, 3.0, 2.5, 2.0, 1.5, 1.0];
+  static const List<double> stringThicknesses = [
+    3.5, 3.0, 2.5, 2.0, 1.5, 1.0
+  ];
   static const List<Color> stringColors = [
     Color(0xFFB8860B),
     Color(0xFFB8860B),
@@ -333,7 +362,9 @@ class GuitarNeckPainter extends CustomPainter {
     _drawNeckBackground(canvas, size);
     _drawFrets(canvas, size, fretWidth);
     _drawInlays(canvas, size, fretWidth, stringSpacing);
-    if (capoFret > 0 && capoFret >= startFret && capoFret <= startFret + visibleFrets) {
+    if (capoFret > 0 &&
+        capoFret >= startFret &&
+        capoFret <= startFret + visibleFrets) {
       _drawCapo(canvas, size, fretWidth, stringSpacing);
     }
     _drawStrings(canvas, size, stringSpacing);
@@ -344,7 +375,6 @@ class GuitarNeckPainter extends CustomPainter {
   }
 
   void _drawNeckBackground(Canvas canvas, Size size) {
-    // Wood grain gradient
     final paint = Paint()
       ..shader = const LinearGradient(
         begin: Alignment.topCenter,
@@ -358,15 +388,12 @@ class GuitarNeckPainter extends CustomPainter {
         ],
         stops: [0, 0.25, 0.5, 0.75, 1],
       ).createShader(Offset.zero & size);
-
     canvas.drawRect(Offset.zero & size, paint);
 
-    // Wood grain lines
     final grainPaint = Paint()
       ..color = Colors.black.withOpacity(0.08)
       ..strokeWidth = 0.5
       ..style = PaintingStyle.stroke;
-
     for (double x = 0; x < size.width; x += 3.5) {
       canvas.drawLine(Offset(x, 0), Offset(x + 8, size.height), grainPaint);
     }
@@ -377,7 +404,6 @@ class GuitarNeckPainter extends CustomPainter {
       ..color = const Color(0xFFC0C0C0)
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke;
-
     final nut = Paint()
       ..color = const Color(0xFFF5F5DC)
       ..strokeWidth = 5.0
@@ -386,13 +412,14 @@ class GuitarNeckPainter extends CustomPainter {
     for (int i = 0; i <= visibleFrets; i++) {
       final x = i * fretWidth;
       final isNut = startFret == 0 && i == 0;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), isNut ? nut : fretPaint);
+      canvas.drawLine(
+          Offset(x, 0), Offset(x, size.height), isNut ? nut : fretPaint);
     }
   }
 
-  void _drawInlays(Canvas canvas, Size size, double fretWidth, double stringSpacing) {
+  void _drawInlays(
+      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
     const inlayFrets = [3, 5, 7, 9, 12, 15, 17, 19, 21];
-    const inlayFret12Double = 12;
 
     final inlayPaint = Paint()
       ..color = const Color(0xFFE8DCC8).withOpacity(0.7)
@@ -406,7 +433,6 @@ class GuitarNeckPainter extends CustomPainter {
       final y = size.height / 2;
 
       if (fret == 12) {
-        // Double dot
         canvas.drawCircle(Offset(x, y - stringSpacing), 6, inlayPaint);
         canvas.drawCircle(Offset(x, y + stringSpacing), 6, inlayPaint);
       } else {
@@ -415,8 +441,8 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-
-  void _drawCapo(Canvas canvas, Size size, double fretWidth, double stringSpacing) {
+  void _drawCapo(
+      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
     final relativeFret = capoFret - startFret;
     if (relativeFret < 0 || relativeFret > visibleFrets) return;
 
@@ -431,7 +457,6 @@ class GuitarNeckPainter extends CustomPainter {
     );
     canvas.drawRRect(rect, capoPaint);
 
-    // Metallic sheen
     final shinePaint = Paint()
       ..color = Colors.white.withOpacity(0.15)
       ..style = PaintingStyle.fill;
@@ -449,23 +474,20 @@ class GuitarNeckPainter extends CustomPainter {
       final y = (i + 0.5) * stringSpacing;
       final isActive = activeString == i;
 
-      // String shadow
       final shadowPaint = Paint()
         ..color = Colors.black.withOpacity(0.4)
         ..strokeWidth = stringThicknesses[i] + 1
         ..style = PaintingStyle.stroke;
-      canvas.drawLine(Offset(0, y + 1), Offset(size.width, y + 1), shadowPaint);
+      canvas.drawLine(
+          Offset(0, y + 1), Offset(size.width, y + 1), shadowPaint);
 
-      // Main string
       final stringPaint = Paint()
-        ..color = isActive
-            ? Colors.white.withOpacity(0.95)
-            : stringColors[i]
-        ..strokeWidth = isActive ? stringThicknesses[i] + 0.5 : stringThicknesses[i]
+        ..color = isActive ? Colors.white.withOpacity(0.95) : stringColors[i]
+        ..strokeWidth =
+        isActive ? stringThicknesses[i] + 0.5 : stringThicknesses[i]
         ..style = PaintingStyle.stroke;
 
       if (isActive) {
-        // Vibration effect - wavy line
         final path = Path();
         path.moveTo(0, y);
         for (double x = 0; x < size.width; x += 4) {
@@ -473,10 +495,10 @@ class GuitarNeckPainter extends CustomPainter {
         }
         canvas.drawPath(path, stringPaint);
       } else {
-        canvas.drawLine(Offset(0, y), Offset(size.width, y), stringPaint);
+        canvas.drawLine(
+            Offset(0, y), Offset(size.width, y), stringPaint);
       }
 
-      // String highlight (metallic look)
       final highlightPaint = Paint()
         ..color = Colors.white.withOpacity(0.25)
         ..strokeWidth = stringThicknesses[i] * 0.3
@@ -489,7 +511,8 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-  void _drawHighlights(Canvas canvas, Size size, double fretWidth, double stringSpacing) {
+  void _drawHighlights(
+      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
     for (final entry in highlightedFrets.entries) {
       final stringIndex = entry.key;
       final frets = entry.value;
@@ -506,7 +529,6 @@ class GuitarNeckPainter extends CustomPainter {
         final highlightPaint = Paint()
           ..color = const Color(0xFF4CAF50).withOpacity(0.8)
           ..style = PaintingStyle.fill;
-
         canvas.drawCircle(Offset(x, y), 10, highlightPaint);
 
         final textPainter = TextPainter(
@@ -529,7 +551,8 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-  void _drawActiveNote(Canvas canvas, Size size, double fretWidth, double stringSpacing) {
+  void _drawActiveNote(
+      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
     if (activeString == null || activeFret == null) return;
 
     final relativeFret = (activeFret!) - startFret;
@@ -540,7 +563,6 @@ class GuitarNeckPainter extends CustomPainter {
         : (relativeFret - 0.5) * fretWidth + fretWidth * 0.5;
     final y = (activeString! + 0.5) * stringSpacing;
 
-    // Glow effect
     for (double r = 24; r >= 14; r -= 2) {
       final glowPaint = Paint()
         ..color = const Color(0xFFDAA520).withOpacity(0.08)
@@ -580,10 +602,12 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-  void _drawNoteNames(Canvas canvas, Size size, double fretWidth, double stringSpacing) {
-    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  void _drawNoteNames(
+      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
+    const noteForMidi = [
+      'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
+    ];
     const openMidi = [40, 45, 50, 55, 59, 64];
-    const noteForMidi = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
     for (int s = 0; s < 6; s++) {
       for (int f = 0; f <= visibleFrets; f++) {

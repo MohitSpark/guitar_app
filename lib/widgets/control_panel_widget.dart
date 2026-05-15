@@ -31,74 +31,75 @@ class ControlPanelWidget extends StatelessWidget {
               left: BorderSide(color: Color(0xFF5C2A00), width: 1),
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              const SizedBox(height: 36),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,  // change from spaceEvenly
+              children: [
+                const SizedBox(height: 36),
 
-              // Mode buttons
-              _buildControlButton(
-                icon: Icons.music_note,
-                label: 'Chords',
-                color: const Color(0xFF4CAF50),
-                onTap: onChordsTap,
-                isActive: provider.selectedChord != null,
-              ),
-              _buildControlButton(
-                icon: Icons.piano,
-                label: 'Scales',
-                color: const Color(0xFF2196F3),
-                onTap: onScalesTap,
-                isActive: provider.selectedScale != null,
-              ),
-              _buildControlButton(
-                icon: Icons.tune,
-                label: 'Tuner',
-                color: const Color(0xFFFF9800),
-                onTap: onTunerTap,
-              ),
+                _buildControlButton(
+                  icon: Icons.music_note,
+                  label: 'Chords',
+                  color: const Color(0xFF4CAF50),
+                  onTap: onChordsTap,
+                  isActive: provider.selectedChord != null,
+                ),
+                _buildControlButton(
+                  icon: Icons.piano,
+                  label: 'Scales',
+                  color: const Color(0xFF2196F3),
+                  onTap: onScalesTap,
+                  isActive: provider.selectedScale != null,
+                ),
+                _buildControlButton(
+                  icon: Icons.tune,
+                  label: 'Tuner',
+                  color: const Color(0xFFFF9800),
+                  onTap: onTunerTap,
+                ),
 
-              const Divider(color: Color(0xFF5C2A00), height: 1),
+                const Divider(color: Color(0xFF5C2A00), height: 1),
 
-              // Quick controls
-              _buildSmallButton(
-                icon: provider.showFretNumbers ? Icons.grid_on : Icons.grid_off,
-                label: 'Frets',
-                onTap: () => provider.toggleFretNumbers(),
-                isActive: provider.showFretNumbers,
-              ),
-              _buildSmallButton(
-                icon: Icons.text_fields,
-                label: 'Notes',
-                onTap: () => provider.toggleNoteNames(),
-                isActive: provider.showNoteNames,
-              ),
-              _buildSmallButton(
-                icon: provider.leftHanded ? Icons.swap_horiz : Icons.swap_horiz,
-                label: provider.leftHanded ? 'Left' : 'Right',
-                onTap: () => provider.toggleLeftHanded(),
-                isActive: provider.leftHanded,
-              ),
+                _buildSmallButton(
+                  icon: provider.showFretNumbers ? Icons.grid_on : Icons.grid_off,
+                  label: 'Frets',
+                  onTap: () => provider.toggleFretNumbers(),
+                  isActive: provider.showFretNumbers,
+                ),
+                _buildSmallButton(
+                  icon: Icons.text_fields,
+                  label: 'Notes',
+                  onTap: () => provider.toggleNoteNames(),
+                  isActive: provider.showNoteNames,
+                ),
+                _buildSmallButton(
+                  icon: Icons.swap_horiz,
+                  label: provider.leftHanded ? 'Left' : 'Right',
+                  onTap: () => provider.toggleLeftHanded(),
+                  isActive: provider.leftHanded,
+                ),
 
-              const Divider(color: Color(0xFF5C2A00), height: 1),
+                const Divider(color: Color(0xFF5C2A00), height: 1),
 
-              _buildSmallButton(
-                icon: Icons.play_arrow,
-                label: 'Play',
-                onTap: () => provider.playRecording(),
-                isActive: false,
-                color: const Color(0xFFDAA520),
-              ),
+                _buildSmallButton(
+                  icon: Icons.play_arrow,
+                  label: 'Play',
+                  onTap: () => provider.playRecording(),
+                  isActive: false,
+                  color: const Color(0xFFDAA520),
+                ),
 
-              _buildControlButton(
-                icon: Icons.settings,
-                label: 'Settings',
-                color: Colors.white54,
-                onTap: onSettingsTap,
-              ),
+                _buildControlButton(
+                  icon: Icons.settings,
+                  label: 'Settings',
+                  color: Colors.white54,
+                  onTap: onSettingsTap,
+                ),
 
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },

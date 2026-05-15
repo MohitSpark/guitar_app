@@ -6,9 +6,10 @@ class AudioService {
   factory AudioService() => _instance;
   AudioService._internal();
 
-  final List<AudioPlayer> _players = [];
-  final int _maxPlayers = 12;
-  int _currentPlayerIndex = 0;
+  final List<AudioPlayer> _pool = [];
+  static const int _poolSize = 8;
+  int _poolIndex = 0;
+
   double _volume = 0.8;
   bool _isMuted = false;
   bool _isInitialized = false;
@@ -18,108 +19,84 @@ class AudioService {
   bool get isInitialized => _isInitialized;
 
   Future<void> init() async {
+    if (_isInitialized) return;
+
     try {
-      if (_isInitialized) {
-        debugPrint('Audio service already initialized');
-        return;
+      debugPrint('Initializing AudioService...');
+
+      for (int i = 0; i < _poolSize; i++) {
+        final player = AudioPlayer();
+        await player.setPlayerMode(PlayerMode.lowLatency);
+        await player.setReleaseMode(ReleaseMode.release);
+        await player.setVolume(_volume);
+        _pool.add(player);
       }
 
-      debugPrint('Initializing audio service...');
-      for (int i = 0; i < _maxPlayers; i++) {
-        final player = AudioPlayer();
-        // Use low latency for responsive guitar playing
-        await player.setPlayerMode(PlayerMode.lowLatency);
-        await player.setVolume(_volume);
-        _players.add(player);
-      }
+      // Warm up: play a silent note so the audio engine is awake
+      await _pool[0].setVolume(0.0);
+      await _pool[0].play(AssetSource(_noteAssetPath(64)));
+      await _pool[0].setVolume(_volume);
+
       _isInitialized = true;
-      debugPrint('Audio service initialized successfully with $_maxPlayers players');
+      debugPrint('AudioService ready with $_poolSize players');
     } catch (e) {
-      debugPrint('Error initializing audio service: $e');
+      debugPrint('AudioService init error: $e');
       rethrow;
     }
   }
 
   Future<void> playNote(int stringIndex, int fret) async {
-    if (_isMuted) {
-      debugPrint('Audio is muted');
-      return;
-    }
+    if (_isMuted || !_isInitialized) return;
 
-    if (!_isInitialized) {
-      debugPrint('Audio service not initialized yet');
-      return;
-    }
+    // Base MIDI for open strings: E2=40 A2=45 D3=50 G3=55 B3=59 E4=64
+    const openMidi = [40, 45, 50, 55, 59, 64];
+    final midi = (openMidi[stringIndex] + fret).clamp(40, 88);
+    final asset = _noteAssetPath(midi);
 
     try {
-      final player = _players[_currentPlayerIndex % _maxPlayers];
-      _currentPlayerIndex++;
+      // Round-robin pool — grab next player, DON'T stop it first
+      // (stopping causes the audible gap/click)
+      final player = _pool[_poolIndex % _poolSize];
+      _poolIndex++;
 
-      // Map string + fret to a MIDI-like note index
-      // Base MIDI notes for open strings: E2=40, A2=45, D3=50, G3=55, B3=59, E4=64
-      const openMidi = [40, 45, 50, 55, 59, 64];
-      final midiNote = openMidi[stringIndex] + fret;
-
-      final effectiveVolume = _isMuted ? 0.0 : _volume;
-      await player.setVolume(effectiveVolume);
-
-      // Play a note from assets
-      final noteFile = _getNoteAssetPath(midiNote);
-      debugPrint('Playing note: $noteFile (String: $stringIndex, Fret: $fret, MIDI: $midiNote, Volume: $effectiveVolume)');
-
-      // Release any previous audio first to ensure clean playback
-      await player.stop();
-      await Future.delayed(const Duration(milliseconds: 10));
-
-      await player.play(AssetSource(noteFile));
-      debugPrint('Audio playback started for note $midiNote');
+      await player.setVolume(_volume);
+      await player.play(AssetSource(asset));
     } catch (e) {
-      debugPrint('Audio error playing note: $e');
+      debugPrint('playNote error (string $stringIndex fret $fret): $e');
     }
   }
 
-  String _getNoteAssetPath(int midiNote) {
-    // Map MIDI notes to bundled asset files
-    // Standard guitar range: ~E2 (40) to ~E6 (88)
-    final clampedNote = midiNote.clamp(40, 88);
-    return 'sounds/note_$clampedNote.mp3';
-  }
+  String _noteAssetPath(int midi) => 'sounds/note_$midi.mp3';
 
   Future<void> playChord(List<int> stringFrets) async {
     for (int i = 0; i < stringFrets.length; i++) {
       if (stringFrets[i] >= 0) {
-        await Future.delayed(Duration(milliseconds: i * 30));
-        await playNote(i, stringFrets[i]);
+        Future.delayed(Duration(milliseconds: i * 25), () {
+          playNote(i, stringFrets[i]);
+        });
       }
     }
   }
 
   void setVolume(double vol) {
     _volume = vol.clamp(0.0, 1.0);
-    debugPrint('Setting volume to $_volume');
-    for (final player in _players) {
-      player.setVolume(_volume);
+    for (final p in _pool) {
+      p.setVolume(_volume);
     }
   }
 
   void toggleMute() {
     _isMuted = !_isMuted;
-    debugPrint('Mute toggled: $_isMuted');
-    if (_isMuted) {
-      for (final player in _players) {
-        player.setVolume(0.0);
-      }
-    } else {
-      setVolume(_volume);
+    final target = _isMuted ? 0.0 : _volume;
+    for (final p in _pool) {
+      p.setVolume(target);
     }
   }
 
   void dispose() {
-    for (final player in _players) {
-      player.dispose();
+    for (final p in _pool) {
+      p.dispose();
     }
     _isInitialized = false;
   }
 }
-
-

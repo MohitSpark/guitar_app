@@ -266,6 +266,18 @@ class GuitarProvider extends ChangeNotifier {
     }
   }
 
+  // Inside GuitarProvider class
+  void updateCapoOffset(double localX, double totalNeckWidth) {
+    double fretWidth = totalNeckWidth / 12;
+    int newFret = (localX / fretWidth).round().clamp(1, 12);
+
+    // ONLY notify if the fret actually changes
+    if (newFret != _capoFret) {
+      _capoFret = newFret;
+      notifyListeners();
+    }
+  }
+
   @override
   void dispose() {
     _audioService.dispose();
