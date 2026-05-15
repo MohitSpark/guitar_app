@@ -52,6 +52,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
       _lastPlayedMs = now;
     }
 
+    debugPrint('Triggering note: String $stringIndex, Fret $actualFret');
     _lastPlayedString = stringIndex;
     _lastPlayedFretVal = actualFret;
     provider.playString(stringIndex, actualFret);
@@ -175,7 +176,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
         final stringHeight = constraints.maxHeight / 6;
 
         return GestureDetector(
-          behavior: HitTestBehavior.translucent,
+          behavior: HitTestBehavior.opaque,
 
           onTapDown: (details) {
             final s = _stringFromDy(details.localPosition.dy, stringHeight);
@@ -205,7 +206,11 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
             _lastPlayedFretVal = -1;
           },
 
-          child: Container(color: Colors.transparent),
+          child: const SizedBox.expand(
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: Colors.transparent),
+            ),
+          ),
         );
       },
     );
@@ -362,11 +367,6 @@ class GuitarNeckPainter extends CustomPainter {
     _drawNeckBackground(canvas, size);
     _drawFrets(canvas, size, fretWidth);
     _drawInlays(canvas, size, fretWidth, stringSpacing);
-    if (capoFret > 0 &&
-        capoFret >= startFret &&
-        capoFret <= startFret + visibleFrets) {
-      _drawCapo(canvas, size, fretWidth, stringSpacing);
-    }
     _drawStrings(canvas, size, stringSpacing);
     _drawHighlights(canvas, size, fretWidth, stringSpacing);
     _drawActiveNote(canvas, size, fretWidth, stringSpacing);
@@ -441,7 +441,7 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-  void _drawCapo(
+/*  void _drawCapo(
       Canvas canvas, Size size, double fretWidth, double stringSpacing) {
     final relativeFret = capoFret - startFret;
     if (relativeFret < 0 || relativeFret > visibleFrets) return;
@@ -467,7 +467,7 @@ class GuitarNeckPainter extends CustomPainter {
       ),
       shinePaint,
     );
-  }
+  }*/
 
   void _drawStrings(Canvas canvas, Size size, double stringSpacing) {
     for (int i = 0; i < 6; i++) {

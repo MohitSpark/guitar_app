@@ -1,14 +1,14 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class AudioService {
   static final AudioService _instance = AudioService._internal();
   factory AudioService() => _instance;
   AudioService._internal();
 
-  final List<AudioPlayer> _pool = [];
-  static const int _poolSize = 8;
-  int _poolIndex = 0;
+  final List<AudioPlayer> _stringPlayers = [];
+  static const int _numStrings = 6;
 
   double _volume = 0.8;
   bool _isMuted = false;
@@ -22,23 +22,44 @@ class AudioService {
     if (_isInitialized) return;
 
     try {
-      debugPrint('Initializing AudioService...');
+      await rootBundle.load('assets/sounds/note_64.mp3');
+      debugPrint('✅ Asset check passed');
+    } catch (e) {
+      debugPrint('❌ Asset check FAILED: $e');
+      return;
+    }
 
-      for (int i = 0; i < _poolSize; i++) {
+    try {
+      // In v5.x, set global audio context ONCE before creating players
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          android: AudioContextAndroid(
+            isSpeakerphoneOn: true,
+            stayAwake: true,
+            contentType: AndroidContentType.music,
+            usageType: AndroidUsageType.media,
+            audioFocus: AndroidAudioFocus.gain,
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: [
+              AVAudioSessionOptions.mixWithOthers,
+              AVAudioSessionOptions.defaultToSpeaker
+            ],
+          ),
+        ),
+      );
+
+      for (int i = 0; i < _numStrings; i++) {
         final player = AudioPlayer();
-        await player.setPlayerMode(PlayerMode.lowLatency);
-        await player.setReleaseMode(ReleaseMode.release);
+        // Ensure player is stopped when finished and has correct volume
+        await player.setReleaseMode(ReleaseMode.stop);
         await player.setVolume(_volume);
-        _pool.add(player);
+        _stringPlayers.add(player);
       }
 
-      // Warm up: play a silent note so the audio engine is awake
-      await _pool[0].setVolume(0.0);
-      await _pool[0].play(AssetSource(_noteAssetPath(64)));
-      await _pool[0].setVolume(_volume);
-
       _isInitialized = true;
-      debugPrint('AudioService ready with $_poolSize players');
+      debugPrint('AudioService ready with $_numStrings string players');
     } catch (e) {
       debugPrint('AudioService init error: $e');
       rethrow;
@@ -46,23 +67,28 @@ class AudioService {
   }
 
   Future<void> playNote(int stringIndex, int fret) async {
-    if (_isMuted || !_isInitialized) return;
+    if (_isMuted || !_isInitialized) {
+      if (!_isInitialized) debugPrint('playNote: AudioService not initialized');
+      return;
+    }
 
-    // Base MIDI for open strings: E2=40 A2=45 D3=50 G3=55 B3=59 E4=64
     const openMidi = [40, 45, 50, 55, 59, 64];
     final midi = (openMidi[stringIndex] + fret).clamp(40, 88);
     final asset = _noteAssetPath(midi);
 
     try {
-      // Round-robin pool — grab next player, DON'T stop it first
-      // (stopping causes the audible gap/click)
-      final player = _pool[_poolIndex % _poolSize];
-      _poolIndex++;
+      final player = _stringPlayers[stringIndex % _numStrings];
+      
+      // For reliable rapid triggering, we stop and then play.
+      // We don't await stop here to keep the UI thread moving, 
+      // but play() will handle the interruption internally in most cases.
+      player.stop().then((_) {
+        player.play(AssetSource(asset), volume: _volume);
+      });
 
-      await player.setVolume(_volume);
-      await player.play(AssetSource(asset));
+      debugPrint('Playing string $stringIndex fret $fret -> $asset');
     } catch (e) {
-      debugPrint('playNote error (string $stringIndex fret $fret): $e');
+      debugPrint('playNote error: $e');
     }
   }
 
@@ -71,8 +97,10 @@ class AudioService {
   Future<void> playChord(List<int> stringFrets) async {
     for (int i = 0; i < stringFrets.length; i++) {
       if (stringFrets[i] >= 0) {
-        Future.delayed(Duration(milliseconds: i * 25), () {
-          playNote(i, stringFrets[i]);
+        final si = i;
+        final fret = stringFrets[i];
+        Future.delayed(Duration(milliseconds: si * 30), () {
+          playNote(si, fret);
         });
       }
     }
@@ -80,23 +108,26 @@ class AudioService {
 
   void setVolume(double vol) {
     _volume = vol.clamp(0.0, 1.0);
-    for (final p in _pool) {
-      p.setVolume(_volume);
+    if (!_isMuted) {
+      for (final p in _stringPlayers) {
+        p.setVolume(_volume);
+      }
     }
   }
 
   void toggleMute() {
     _isMuted = !_isMuted;
     final target = _isMuted ? 0.0 : _volume;
-    for (final p in _pool) {
+    for (final p in _stringPlayers) {
       p.setVolume(target);
     }
   }
 
   void dispose() {
-    for (final p in _pool) {
+    for (final p in _stringPlayers) {
       p.dispose();
     }
+    _stringPlayers.clear();
     _isInitialized = false;
   }
 }
