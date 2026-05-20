@@ -142,25 +142,78 @@ class _GuitarScreenState extends State<GuitarScreen>
   Widget _capoVisual({bool isDragging = false}) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      width: 36,
+      width: 28,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFDAA520), Color(0xFF8B4513), Color(0xFFDAA520)],
+        gradient: LinearGradient(
+          colors: isDragging
+              ? [Color(0xFFFFE87C), Color(0xFFDAA520), Color(0xFFB8860B), Color(0xFFDAA520), Color(0xFFFFE87C)]
+              : [Color(0xFFDAA520), Color(0xFF8B6914), Color(0xFFDAA520), Color(0xFF8B6914), Color(0xFFDAA520)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white24, width: 1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isDragging ? Colors.white54 : Colors.white24,
+          width: isDragging ? 1.5 : 1,
+        ),
         boxShadow: [
+          // Warm glow
           BoxShadow(
-            color: Colors.black.withOpacity(isDragging ? 0.85 : 0.5),
-            blurRadius: isDragging ? 24 : 10,
-            offset: Offset(isDragging ? 10 : 4, 0),
+            color: const Color(0xFFDAA520).withOpacity(isDragging ? 0.6 : 0.25),
+            blurRadius: isDragging ? 16 : 8,
+            spreadRadius: isDragging ? 2 : 0,
+          ),
+          // Depth shadow
+          BoxShadow(
+            color: Colors.black.withOpacity(isDragging ? 0.7 : 0.4),
+            blurRadius: isDragging ? 12 : 6,
+            offset: Offset(isDragging ? 6 : 3, 0),
           ),
         ],
       ),
-      child: Center(
-        child: Container(width: 4, color: Colors.black45),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // Top bolt
+          _capoBolt(),
+          // Grip ridges
+          ...List.generate(5, (i) => _capoRidge()),
+          // Bottom bolt
+          _capoBolt(),
+        ],
+      ),
+    );
+  }
+
+  Widget _capoRidge() {
+    return Container(
+      height: 3,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(1),
+      ),
+    );
+  }
+
+  Widget _capoBolt() {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const RadialGradient(
+          colors: [Color(0xFFFFFFAA), Color(0xFFB8860B)],
+          center: Alignment(-0.3, -0.3),
+        ),
+        border: Border.all(color: Colors.black45, width: 0.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 2,
+            offset: const Offset(1, 1),
+          ),
+        ],
       ),
     );
   }

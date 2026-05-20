@@ -15,7 +15,6 @@ class _TunerWidgetState extends State<TunerWidget>
   int _selectedStringIndex = 0;
   double _cents = 0;
   bool _isListening = false;
-  String _detectedNote = '-';
   String _targetNote = 'E2';
   String _tuningStatus = 'Tap to tune';
 
@@ -70,13 +69,10 @@ class _TunerWidgetState extends State<TunerWidget>
       String status;
       if (deviation.abs() < 3) {
         status = 'In Tune! ✓';
-        _detectedNote = _targetNote;
       } else if (deviation < 0) {
         status = 'Too Low (-${deviation.abs().toStringAsFixed(0)} cents)';
-        _detectedNote = '↑ Tighten';
       } else {
         status = 'Too High (+${deviation.toStringAsFixed(0)} cents)';
-        _detectedNote = '↓ Loosen';
       }
 
       setState(() {
@@ -174,7 +170,6 @@ class _TunerWidgetState extends State<TunerWidget>
                     _targetNote = _stringData[i]['note'];
                     _cents = 0;
                     _tuningStatus = 'Tap to tune';
-                    _detectedNote = '-';
                   });
                   _needleAnimation = Tween<double>(begin: 0, end: 0).animate(
                     CurvedAnimation(parent: _needleController, curve: Curves.easeOut),

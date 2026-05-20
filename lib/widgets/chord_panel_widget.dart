@@ -200,7 +200,7 @@ class _MiniChordPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final stringSpacing = size.width / 5;
     final fretSpacing = size.height / 4;
-    final maxFret = chord.frets.where((f) => f > 0).fold(0, (a, b) => a > b ? a : b);
+    chord.frets.where((f) => f > 0).fold(0, (a, b) => a > b ? a : b);
     final minFret = chord.frets.where((f) => f > 0).fold(99, (a, b) => a < b ? a : b);
 
     // Draw fret lines

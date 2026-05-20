@@ -20,7 +20,6 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
     with TickerProviderStateMixin {
   late AnimationController _strumController;
   late AnimationController _pulseController;
-  late Animation<double> _strumAnimation;
   late Animation<double> _pulseAnimation;
   bool _isStrumming = false;
 
@@ -30,9 +29,6 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
     _strumController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 200),
-    );
-    _strumAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _strumController, curve: Curves.easeOut),
     );
 
     _pulseController = AnimationController(
@@ -246,12 +242,7 @@ class GuitarBodyPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // Draw guitar body outline
-    final bodyPaint = Paint()
-      ..color = const Color(0xFF5C2A00).withOpacity(0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
 
-    final path = Path();
     final w = size.width;
     final h = size.height;
 

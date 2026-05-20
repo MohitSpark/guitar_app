@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/guitar_provider.dart';
-import '../models/guitar_models.dart';
 
 class GuitarNeckWidget extends StatefulWidget {
   const GuitarNeckWidget({super.key});
