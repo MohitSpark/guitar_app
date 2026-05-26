@@ -14,7 +14,6 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
   final int _visibleFrets = 12;
   int _startFret = 0;
 
-  // Smooth slide tracking
   int _lastPlayedString = -1;
   int _lastPlayedFretVal = -1;
   bool _isSliding = false;
@@ -26,10 +25,6 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
     super.initState();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   void _tryPlay(GuitarProvider provider, int stringIndex, int actualFret,
       {bool reset = false}) {
@@ -154,7 +149,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
                     decoration: BoxDecoration(
                       color: _startFret == i * 2
                           ? const Color(0xFFDAA520)
-                          : Colors.white.withOpacity(0.2),
+                          : Colors.white.withValues(alpha: 0.2),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -390,7 +385,7 @@ class GuitarNeckPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, paint);
 
     final grainPaint = Paint()
-      ..color = Colors.black.withOpacity(0.08)
+      ..color = Colors.black.withValues(alpha: 0.08)
       ..strokeWidth = 0.5
       ..style = PaintingStyle.stroke;
     for (double x = 0; x < size.width; x += 3.5) {
@@ -421,7 +416,7 @@ class GuitarNeckPainter extends CustomPainter {
     const inlayFrets = [3, 5, 7, 9, 12, 15, 17, 19, 21];
 
     final inlayPaint = Paint()
-      ..color = const Color(0xFFE8DCC8).withOpacity(0.7)
+      ..color = const Color(0xFFE8DCC8).withValues(alpha: 0.7)
       ..style = PaintingStyle.fill;
 
     for (final fret in inlayFrets) {
@@ -440,48 +435,20 @@ class GuitarNeckPainter extends CustomPainter {
     }
   }
 
-/*  void _drawCapo(
-      Canvas canvas, Size size, double fretWidth, double stringSpacing) {
-    final relativeFret = capoFret - startFret;
-    if (relativeFret < 0 || relativeFret > visibleFrets) return;
-
-    final x = relativeFret * fretWidth;
-    final capoPaint = Paint()
-      ..color = const Color(0xFF2C2C2C).withOpacity(0.9)
-      ..style = PaintingStyle.fill;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(x - 4, 0, 12, size.height),
-      const Radius.circular(6),
-    );
-    canvas.drawRRect(rect, capoPaint);
-
-    final shinePaint = Paint()
-      ..color = Colors.white.withOpacity(0.15)
-      ..style = PaintingStyle.fill;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(x - 4, 0, 4, size.height),
-        const Radius.circular(6),
-      ),
-      shinePaint,
-    );
-  }*/
-
   void _drawStrings(Canvas canvas, Size size, double stringSpacing) {
     for (int i = 0; i < 6; i++) {
       final y = (i + 0.5) * stringSpacing;
       final isActive = activeString == i;
 
       final shadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.4)
+        ..color = Colors.black.withValues(alpha: 0.4)
         ..strokeWidth = stringThicknesses[i] + 1
         ..style = PaintingStyle.stroke;
       canvas.drawLine(
           Offset(0, y + 1), Offset(size.width, y + 1), shadowPaint);
 
       final stringPaint = Paint()
-        ..color = isActive ? Colors.white.withOpacity(0.95) : stringColors[i]
+        ..color = isActive ? Colors.white.withValues(alpha: 0.95) : stringColors[i]
         ..strokeWidth =
         isActive ? stringThicknesses[i] + 0.5 : stringThicknesses[i]
         ..style = PaintingStyle.stroke;
@@ -499,7 +466,7 @@ class GuitarNeckPainter extends CustomPainter {
       }
 
       final highlightPaint = Paint()
-        ..color = Colors.white.withOpacity(0.25)
+        ..color = Colors.white.withValues(alpha: 0.25)
         ..strokeWidth = stringThicknesses[i] * 0.3
         ..style = PaintingStyle.stroke;
       canvas.drawLine(
@@ -526,7 +493,7 @@ class GuitarNeckPainter extends CustomPainter {
         final y = (stringIndex + 0.5) * stringSpacing;
 
         final highlightPaint = Paint()
-          ..color = const Color(0xFF4CAF50).withOpacity(0.8)
+          ..color = const Color(0xFF4CAF50).withValues(alpha: 0.8)
           ..style = PaintingStyle.fill;
         canvas.drawCircle(Offset(x, y), 10, highlightPaint);
 
@@ -564,7 +531,7 @@ class GuitarNeckPainter extends CustomPainter {
 
     for (double r = 24; r >= 14; r -= 2) {
       final glowPaint = Paint()
-        ..color = const Color(0xFFDAA520).withOpacity(0.08)
+        ..color = const Color(0xFFDAA520).withValues(alpha: 0.08)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(Offset(x, y), r, glowPaint);
     }
@@ -590,7 +557,7 @@ class GuitarNeckPainter extends CustomPainter {
         text: TextSpan(
           text: '$fretNumber',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.4),
+            color: Colors.white.withValues(alpha: 0.4),
             fontSize: 9,
           ),
         ),
@@ -621,7 +588,7 @@ class GuitarNeckPainter extends CustomPainter {
           text: TextSpan(
             text: note,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.35),
+              color: Colors.white.withValues(alpha: 0.35),
               fontSize: 8,
             ),
           ),
