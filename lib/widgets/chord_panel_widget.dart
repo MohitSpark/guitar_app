@@ -13,7 +13,6 @@ class ChordPanelWidget extends StatelessWidget {
         return ListView(
           padding: const EdgeInsets.all(8),
           children: [
-            // Strum buttons
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
@@ -39,7 +38,6 @@ class ChordPanelWidget extends StatelessWidget {
 
             const Divider(color: Color(0xFF5C2A00)),
 
-            // Chord list
             ...commonChords.map(
               (chord) => _buildChordTile(context, provider, chord),
             ),
@@ -64,13 +62,13 @@ class ChordPanelWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: provider.selectedChord != null
-              ? const Color(0xFF4CAF50).withOpacity(0.2)
-              : Colors.white.withOpacity(0.05),
+              ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: provider.selectedChord != null
-                ? const Color(0xFF4CAF50).withOpacity(0.5)
-                : Colors.white.withOpacity(0.1),
+                ? const Color(0xFF4CAF50).withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Column(
@@ -113,25 +111,24 @@ class ChordPanelWidget extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF4CAF50).withOpacity(0.15)
-              : Colors.white.withOpacity(0.03),
+              ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF4CAF50).withOpacity(0.6)
-                : const Color(0xFF5C2A00).withOpacity(0.5),
+                ? const Color(0xFF4CAF50).withValues(alpha: 0.6)
+                : const Color(0xFF5C2A00).withValues(alpha: 0.5),
           ),
         ),
         child: Row(
           children: [
-            // Chord name
             Container(
               width: 52,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF4CAF50).withOpacity(0.3)
-                    : const Color(0xFF3D2010).withOpacity(0.5),
+                    ? const Color(0xFF4CAF50).withValues(alpha: 0.3)
+                    : const Color(0xFF3D2010).withValues(alpha: 0.5),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(10),
                   bottomLeft: Radius.circular(10),
@@ -150,14 +147,12 @@ class ChordPanelWidget extends StatelessWidget {
                 ],
               ),
             ),
-            // Mini chord diagram
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: _MiniChordDiagram(chord: chord),
               ),
             ),
-            // Play button
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Icon(
@@ -205,7 +200,7 @@ class _MiniChordPainter extends CustomPainter {
 
     // Draw fret lines
     final fretPaint = Paint()
-      ..color = Colors.white.withOpacity(0.3)
+      ..color = Colors.white.withValues(alpha: 0.3)
       ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
 
@@ -214,7 +209,6 @@ class _MiniChordPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), fretPaint);
     }
 
-    // Draw strings
     final stringPaint = Paint()
       ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
@@ -222,8 +216,8 @@ class _MiniChordPainter extends CustomPainter {
     for (int s = 0; s < 6; s++) {
       final x = s * stringSpacing;
       stringPaint.color = chord.frets[s] == -1
-          ? Colors.red.withOpacity(0.5)
-          : Colors.white.withOpacity(0.3);
+          ? Colors.red.withValues(alpha: 0.5)
+          : Colors.white.withValues(alpha: 0.3);
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), stringPaint);
     }
 
@@ -241,13 +235,13 @@ class _MiniChordPainter extends CustomPainter {
         final x = s * stringSpacing;
         if (fret == 0) {
           final openPaint = Paint()
-            ..color = Colors.white.withOpacity(0.6)
+            ..color = Colors.white.withValues(alpha: 0.6)
             ..strokeWidth = 1
             ..style = PaintingStyle.stroke;
           canvas.drawCircle(Offset(x, -4), 3, openPaint);
         } else {
           final mutePaint = Paint()
-            ..color = Colors.red.withOpacity(0.6)
+            ..color = Colors.red.withValues(alpha: 0.6)
             ..strokeWidth = 1
             ..style = PaintingStyle.stroke;
           canvas.drawLine(

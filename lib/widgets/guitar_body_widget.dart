@@ -125,12 +125,12 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 Text(
                   'STRUM',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.3),
-                    fontSize: 8,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 10,
                     letterSpacing: 2,
                     fontWeight: FontWeight.bold,
                   ),
@@ -138,7 +138,7 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
                 const SizedBox(height: 4),
                 Icon(
                   Icons.swipe_vertical,
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.4),
                   size: 16,
                 ),
               ],
@@ -160,8 +160,8 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
             children: [
               Icon(
                 provider.isMuted ? Icons.volume_off : Icons.volume_down,
-                color: Colors.white.withOpacity(0.5),
-                size: 12,
+                color: Colors.white.withValues(alpha: 0.8),
+                size: 14,
               ),
               Expanded(
                 child: SliderTheme(
@@ -170,7 +170,7 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                     overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                     activeTrackColor: const Color(0xFFDAA520),
-                    inactiveTrackColor: Colors.white.withOpacity(0.2),
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
                     thumbColor: const Color(0xFFDAA520),
                   ),
                   child: Slider(
@@ -185,14 +185,14 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
                   provider.isMuted ? Icons.volume_mute : Icons.volume_up,
                   color: provider.isMuted
                       ? Colors.orange
-                      : Colors.white.withOpacity(0.5),
-                  size: 12,
+                      : Colors.white.withValues(alpha: 0.8),
+                  size: 14,
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         // Recording button
         GestureDetector(
           onTap: () {
@@ -206,13 +206,13 @@ class _GuitarBodyWidgetState extends State<GuitarBodyWidget>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: provider.isRecording
-                  ? Colors.red.withOpacity(0.8)
-                  : Colors.white.withOpacity(0.1),
+                  ? Colors.red.withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: provider.isRecording
                     ? Colors.red
-                    : Colors.white.withOpacity(0.2),
+                    : Colors.white.withValues(alpha: 0.2),
               ),
             ),
             child: Row(
@@ -249,7 +249,7 @@ class GuitarBodyPainter extends CustomPainter {
     // Left side wood grain
     for (double y = 0; y < h; y += 8) {
       final linePaint = Paint()
-        ..color = Colors.black.withOpacity(0.1)
+        ..color = Colors.black.withValues(alpha: 0.1)
         ..strokeWidth = 0.5
         ..style = PaintingStyle.stroke;
       canvas.drawLine(Offset(0, y), Offset(w, y + 3), linePaint);
@@ -275,8 +275,8 @@ class SoundHolePainter extends CustomPainter {
     for (int i = 5; i >= 0; i--) {
       final ringPaint = Paint()
         ..color = isActive
-            ? Color.lerp(const Color(0xFF5C2A00), const Color(0xFFDAA520), i / 5)!.withOpacity(0.4 + i * 0.05)
-            : const Color(0xFF5C2A00).withOpacity(0.3 + i * 0.05)
+            ? Color.lerp(const Color(0xFF5C2A00), const Color(0xFFDAA520), i / 5)!.withValues(alpha: 0.4 + i * 0.05)
+            : const Color(0xFF5C2A00).withValues(alpha: 0.3 + i * 0.05)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5;
       canvas.drawCircle(center, radius + i * 3, ringPaint);
@@ -284,13 +284,13 @@ class SoundHolePainter extends CustomPainter {
 
     // Sound hole (dark)
     final holePaint = Paint()
-      ..color = Colors.black.withOpacity(0.85)
+      ..color = Colors.black.withValues(alpha: 0.85)
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius, holePaint);
 
     // Rosette decoration
     final rosettePaint = Paint()
-      ..color = const Color(0xFFDAA520).withOpacity(0.6)
+      ..color = const Color(0xFFDAA520).withValues(alpha: 0.6)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
 
@@ -301,7 +301,7 @@ class SoundHolePainter extends CustomPainter {
     // Inner reflection
     if (isActive) {
       final glowPaint = Paint()
-        ..color = const Color(0xFFDAA520).withOpacity(0.15)
+        ..color = const Color(0xFFDAA520).withValues(alpha: 0.15)
         ..style = PaintingStyle.fill;
       canvas.drawCircle(center, radius * 0.8, glowPaint);
     }
@@ -322,7 +322,7 @@ class SoundHolePainter extends CustomPainter {
 
     for (int i = 0; i < 6; i++) {
       final y = (i + 0.5) * size.height / 6;
-      stringPaint.color = isActive ? Colors.white.withOpacity(0.7) : colors[i];
+      stringPaint.color = isActive ? Colors.white.withValues(alpha: 0.7) : colors[i];
       stringPaint.strokeWidth = thicknesses[i];
       canvas.drawLine(Offset(0, y), Offset(size.width, y), stringPaint);
     }

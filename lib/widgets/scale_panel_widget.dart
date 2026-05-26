@@ -61,13 +61,13 @@ class ScalePanelWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF2196F3).withOpacity(0.15)
-              : Colors.white.withOpacity(0.04),
+              ? const Color(0xFF2196F3).withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF2196F3).withOpacity(0.5)
-                : const Color(0xFF5C2A00).withOpacity(0.4),
+                ? const Color(0xFF2196F3).withValues(alpha: 0.5)
+                : const Color(0xFF5C2A00).withValues(alpha: 0.4),
           ),
         ),
         child: Row(
@@ -77,8 +77,8 @@ class ScalePanelWidget extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF2196F3).withOpacity(0.3)
-                    : Colors.white.withOpacity(0.05),
+                    ? const Color(0xFF2196F3).withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -143,13 +143,13 @@ class ScalePanelWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFFFF9800).withOpacity(0.1)
-              : Colors.white.withOpacity(0.03),
+              ? const Color(0xFFFF9800).withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFFFF9800).withOpacity(0.4)
-                : const Color(0xFF5C2A00).withOpacity(0.3),
+                ? const Color(0xFFFF9800).withValues(alpha: 0.4)
+                : const Color(0xFF5C2A00).withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -169,12 +169,11 @@ class ScalePanelWidget extends StatelessWidget {
                 ),
               ),
             ),
-            // String notes display
             Text(
               tuning.notes.map((n) => n.replaceAll(RegExp(r'\d'), '')).join(' '),
               style: TextStyle(
                 color: isSelected
-                    ? const Color(0xFFFF9800).withOpacity(0.7)
+                    ? const Color(0xFFFF9800).withValues(alpha: 0.7)
                     : Colors.white24,
                 fontSize: 10,
                 letterSpacing: 1,

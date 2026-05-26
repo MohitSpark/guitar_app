@@ -59,7 +59,7 @@ class ControlPanelWidget extends StatelessWidget {
                   onTap: onTunerTap,
                 ),
 
-                const Divider(color: Color(0xFF5C2A00), height: 1),
+                const Divider(color: Color(0xFF5C2A00), height: 5),
 
                 _buildSmallButton(
                   icon: provider.showFretNumbers ? Icons.grid_on : Icons.grid_off,
@@ -80,15 +80,7 @@ class ControlPanelWidget extends StatelessWidget {
                   isActive: provider.leftHanded,
                 ),
 
-                const Divider(color: Color(0xFF5C2A00), height: 1),
-
-                _buildSmallButton(
-                  icon: Icons.play_arrow,
-                  label: 'Play',
-                  onTap: () => provider.playRecording(),
-                  isActive: false,
-                  color: const Color(0xFFDAA520),
-                ),
+                const Divider(color: Color(0xFF5C2A00), height: 5),
 
                 _buildControlButton(
                   icon: Icons.settings,
@@ -119,10 +111,10 @@ class ControlPanelWidget extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.25) : Colors.white.withOpacity(0.05),
+          color: isActive ? color.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isActive ? color.withOpacity(0.7) : Colors.white.withOpacity(0.1),
+            color: isActive ? color.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,6 +58,44 @@ class GuitarProvider extends ChangeNotifier {
   int? get activeString => _activeString;
   int? get activeFret => _activeFret;
 
+// --- Add these variables to your existing GuitarProvider properties ---
+  bool _isTunerActive = false;
+  double _tuningCents = 0.0;
+  String _autoDetectedNote = 'E2';
+  bool _isProcessingVirtualNote = false;
+
+// Getters so your Tuner UI can read them
+  bool get isTunerActive => _isTunerActive;
+  double get tuningCents => _tuningCents;
+  String get autoDetectedNote => _autoDetectedNote;
+  bool get isProcessingVirtualNote => _isProcessingVirtualNote;
+
+// Toggle listening state
+  void toggleTunerListening() {
+    _isTunerActive = !_isTunerActive;
+    if (!_isTunerActive) {
+      _tuningCents = 0.0;
+      _isProcessingVirtualNote = false;
+    }
+    notifyListeners();
+  }
+
+  void processVirtualNote(int stringIndex, double artificialDeviationCents) {
+    _isProcessingVirtualNote = true;
+    _autoDetectedNote = currentTuning.notes[stringIndex];
+    _tuningCents = artificialDeviationCents;
+    notifyListeners();
+
+    // Reset the needle slowly back to center after 1.5 seconds of silence
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (_isTunerActive && _autoDetectedNote == currentTuning.notes[stringIndex]) {
+        _tuningCents = 0.0;
+        _isProcessingVirtualNote = false;
+        notifyListeners();
+      }
+    });
+  }
+
   GuitarProvider() {
     _init();
   }
@@ -111,6 +151,12 @@ class GuitarProvider extends ChangeNotifier {
     // Haptic feedback
     if (_vibrateOnPlay) {
       HapticFeedback.lightImpact();
+    }
+
+    // --- Only calculate tuning values if the user turned the tuner on ---
+    if (_isTunerActive) {
+      final randomDeviation = (math.Random().nextDouble() * 20 - 10); // -10 to +10 cents
+      processVirtualNote(stringIndex, randomDeviation);
     }
 
     // Play audio only if initialized

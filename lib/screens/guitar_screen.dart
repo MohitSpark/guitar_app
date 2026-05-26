@@ -26,7 +26,6 @@ class _GuitarScreenState extends State<GuitarScreen>
 
   // Capo drag state
   // _dragLeft holds the raw pixel position ONLY while finger is down.
-  // When null, the capo snaps to its provider fret position.
   double? _dragLeft;
   final GlobalKey _neckKey = GlobalKey(); // Used for accurate local offset
 
@@ -79,12 +78,11 @@ class _GuitarScreenState extends State<GuitarScreen>
         // Once the finger lifts, _dragLeft is null and we animate to snappedLeft.
         final double displayLeft = _dragLeft ?? snappedLeft;
 
-        // Separate durations: instant while dragging, slow for toggle, fast for fret-snap
         final Duration animDuration = _dragLeft != null
-            ? Duration.zero          // finger down  → no interpolation
+            ? Duration.zero
             : isOff
-            ? const Duration(milliseconds: 700)  // sliding OFF  → slow fall
-            : const Duration(milliseconds: 700); // sliding ON   → slow rise
+            ? const Duration(milliseconds: 700)  // sliding OFF
+            : const Duration(milliseconds: 700); // sliding ON
 
         final Curve animCurve = isOff
             ? Curves.easeInCubic     // accelerates as it falls away
@@ -94,8 +92,7 @@ class _GuitarScreenState extends State<GuitarScreen>
           duration: animDuration,
           curve: animCurve,
           left: displayLeft,
-          // Slide in from below when ON, slide down off-screen when OFF
-          top: isOff ? neckWidth + 400 : 40,   // neckWidth is always large enough to be off-screen
+          top: isOff ? neckWidth + 400 : 40,
           bottom: isOff ? -(neckWidth + 400) : 20,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -123,7 +120,6 @@ class _GuitarScreenState extends State<GuitarScreen>
 
               setState(() => _dragLeft = clampedLeft);
 
-              // Update logical fret in provider (drives audio, highlights, etc.)
               provider.updateCapoOffset(
                   clampedLeft - _bodyWidth, neckWidth);
             },
@@ -146,8 +142,8 @@ class _GuitarScreenState extends State<GuitarScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDragging
-              ? [Color(0xFFFFE87C), Color(0xFFDAA520), Color(0xFFB8860B), Color(0xFFDAA520), Color(0xFFFFE87C)]
-              : [Color(0xFFDAA520), Color(0xFF8B6914), Color(0xFFDAA520), Color(0xFF8B6914), Color(0xFFDAA520)],
+              ? [const Color(0xFFFFE87C), const Color(0xFFDAA520), const Color(0xFFB8860B), const Color(0xFFDAA520), const Color(0xFFFFE87C)]
+              : [const Color(0xFFDAA520), const Color(0xFF8B6914), const Color(0xFFDAA520), const Color(0xFF8B6914), const Color(0xFFDAA520)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -157,15 +153,13 @@ class _GuitarScreenState extends State<GuitarScreen>
           width: isDragging ? 1.5 : 1,
         ),
         boxShadow: [
-          // Warm glow
           BoxShadow(
-            color: const Color(0xFFDAA520).withOpacity(isDragging ? 0.6 : 0.25),
+            color: const Color(0xFFDAA520).withValues(alpha: isDragging ? 0.6 : 0.25),
             blurRadius: isDragging ? 16 : 8,
             spreadRadius: isDragging ? 2 : 0,
           ),
-          // Depth shadow
           BoxShadow(
-            color: Colors.black.withOpacity(isDragging ? 0.7 : 0.4),
+            color: Colors.black.withValues(alpha: isDragging ? 0.7 : 0.4),
             blurRadius: isDragging ? 12 : 6,
             offset: Offset(isDragging ? 6 : 3, 0),
           ),
@@ -174,11 +168,8 @@ class _GuitarScreenState extends State<GuitarScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Top bolt
           _capoBolt(),
-          // Grip ridges
           ...List.generate(5, (i) => _capoRidge()),
-          // Bottom bolt
           _capoBolt(),
         ],
       ),
@@ -190,7 +181,7 @@ class _GuitarScreenState extends State<GuitarScreen>
       height: 3,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.3),
+        color: Colors.black.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(1),
       ),
     );
@@ -209,7 +200,7 @@ class _GuitarScreenState extends State<GuitarScreen>
         border: Border.all(color: Colors.black45, width: 0.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 2,
             offset: const Offset(1, 1),
           ),
@@ -302,7 +293,7 @@ class _GuitarScreenState extends State<GuitarScreen>
   Widget _buildSidePanel() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1a0a00).withOpacity(0.95),
+        color: const Color(0xFF1a0a00).withValues(alpha: 0.95),
         border: const Border(
           left: BorderSide(color: Color(0xFF8B4513), width: 1),
         ),
@@ -347,12 +338,12 @@ class _GuitarScreenState extends State<GuitarScreen>
     return Consumer<GuitarProvider>(
       builder: (context, provider, _) {
         return Container(
-          height: 45,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 35,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.black.withOpacity(0.8),
+                Colors.black.withValues(alpha: 0.8),
                 Colors.transparent,
               ],
               begin: Alignment.topCenter,
@@ -385,7 +376,7 @@ class _GuitarScreenState extends State<GuitarScreen>
                     scale: 0.7,
                     child: Switch(
                       value: provider.capoFret > 0,
-                      activeColor: const Color(0xFFDAA520),
+                      activeThumbColor: const Color(0xFFDAA520),
                       onChanged: (isOn) =>
                           provider.setCapo(isOn ? 1 : 0),
                     ),

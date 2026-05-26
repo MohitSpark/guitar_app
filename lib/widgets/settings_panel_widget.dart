@@ -48,7 +48,7 @@ class SettingsPanelWidget extends StatelessWidget {
               icon: Icons.volume_off,
               value: provider.isMuted,
               onChanged: (_) => provider.toggleMute(),
-              activeColor: Colors.orange,
+              activeColor: const Color(0xFFDAA520),
             ),
 
             _buildSection('FEEDBACK'),
@@ -78,15 +78,14 @@ class SettingsPanelWidget extends StatelessWidget {
             ),
 
             const SizedBox(height: 20),
-            // Reset button
             GestureDetector(
               onTap: () => _showResetDialog(context, provider),
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +108,7 @@ class SettingsPanelWidget extends StatelessWidget {
 
   Widget _buildSection(String title) {
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 6),
+      padding: const EdgeInsets.only(top: 10, bottom: 10),
       child: Text(
         title,
         style: const TextStyle(
@@ -135,13 +134,13 @@ class SettingsPanelWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: value
-            ? (activeColor ?? const Color(0xFFDAA520)).withOpacity(0.08)
-            : Colors.white.withOpacity(0.03),
+            ? (activeColor ?? const Color(0xFFDAA520)).withValues(alpha: 0.08)
+            : Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: value
-              ? (activeColor ?? const Color(0xFFDAA520)).withOpacity(0.3)
-              : Colors.white.withOpacity(0.06),
+              ? (activeColor ?? const Color(0xFFDAA520)).withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.06),
         ),
       ),
       child: Row(
@@ -166,7 +165,7 @@ class SettingsPanelWidget extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(color: Colors.white24, fontSize: 9),
+                  style: const TextStyle(color: Colors.white54, fontSize: 9),
                 ),
               ],
             ),
@@ -174,7 +173,7 @@ class SettingsPanelWidget extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: activeColor ?? const Color(0xFFDAA520),
+            activeThumbColor: activeColor ?? const Color(0xFFDAA520),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
         ],
@@ -192,34 +191,34 @@ class SettingsPanelWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white.withOpacity(0.06)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: Colors.white38, size: 16),
+              Icon(icon, color: const Color(0xFFDAA520), size: 16),
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
+                style: const TextStyle(color: Colors.white, fontSize: 12),
               ),
               const Spacer(),
               Text(
                 '${(value * 100).round()}%',
-                style: const TextStyle(color: Color(0xFFDAA520), fontSize: 11),
+                style: const TextStyle(color: Color(0xFFDAA520), fontSize: 12),
               ),
             ],
           ),
           SliderTheme(
             data: SliderThemeData(
-              trackHeight: 2,
+              trackHeight: 3,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
               activeTrackColor: const Color(0xFFDAA520),
-              inactiveTrackColor: Colors.white.withOpacity(0.15),
+              inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
               thumbColor: const Color(0xFFDAA520),
             ),
             child: Slider(value: value, onChanged: onChanged),
@@ -238,20 +237,20 @@ class SettingsPanelWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white24, size: 14),
+          Icon(icon, color: Colors.white54, size: 14),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                  style: const TextStyle(color: Colors.white54, fontSize: 11)),
               Text(subtitle,
-                  style: const TextStyle(color: Colors.white24, fontSize: 9)),
+                  style: const TextStyle(color: Colors.white38, fontSize: 9)),
             ],
           ),
         ],
@@ -277,7 +276,6 @@ class SettingsPanelWidget extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              // Reset to defaults
               if (provider.isMuted) provider.toggleMute();
               provider.setVolume(0.8);
               Navigator.pop(ctx);

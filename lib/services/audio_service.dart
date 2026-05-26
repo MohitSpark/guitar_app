@@ -32,7 +32,7 @@ class AudioService {
     try {
       // In v5.x, set global audio context ONCE before creating players
       await AudioPlayer.global.setAudioContext(
-        AudioContext(
+        const AudioContext(
           android: AudioContextAndroid(
             isSpeakerphoneOn: true,
             stayAwake: true,
