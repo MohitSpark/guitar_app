@@ -27,7 +27,7 @@ class GuitarProvider extends ChangeNotifier {
   bool _vibrateOnPlay = true;
   int _capoFret = 0;
   bool _isRecording = false;
-  List<_RecordedNote> _recordedNotes = [];
+  final List<_RecordedNote> _recordedNotes = [];
   DateTime? _recordingStart;
 
   // Highlighted frets (for scale/chord display)

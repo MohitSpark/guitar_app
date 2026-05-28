@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:guitar_app/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/guitar_provider.dart';
-import 'screens/guitar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,7 +38,7 @@ class GuitarApp extends StatelessWidget {
           useMaterial3: true,
           fontFamily: 'Roboto',
         ),
-        home: const GuitarScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

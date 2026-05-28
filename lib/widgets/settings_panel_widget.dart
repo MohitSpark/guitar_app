@@ -143,41 +143,43 @@ class SettingsPanelWidget extends StatelessWidget {
               : Colors.white.withValues(alpha: 0.06),
         ),
       ),
-      child: Row(
-        children: [
-          Icon(icon,
-              color: value
-                  ? (activeColor ?? const Color(0xFFDAA520))
-                  : Colors.white38,
-              size: 16),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: value ? Colors.white : Colors.white54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: Colors.white54, fontSize: 9),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: activeColor ?? const Color(0xFFDAA520),
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ],
-      ),
+       child: Row(
+         children: [
+           Icon(icon,
+               color: value
+                   ? (activeColor ?? const Color(0xFFDAA520))
+                   : Colors.white38,
+               size: 16),
+           const SizedBox(width: 8),
+           Expanded(
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Text(
+                   title,
+                   style: TextStyle(
+                     color: value ? Colors.white : Colors.white54,
+                     fontSize: 12,
+                     fontWeight: FontWeight.w500,
+                   ),
+                   overflow: TextOverflow.ellipsis,
+                 ),
+                 Text(
+                   subtitle,
+                   style: const TextStyle(color: Colors.white54, fontSize: 9),
+                   overflow: TextOverflow.ellipsis,
+                 ),
+               ],
+             ),
+           ),
+           Switch(
+             value: value,
+             onChanged: onChanged,
+             activeThumbColor: activeColor ?? const Color(0xFFDAA520),
+             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+           ),
+         ],
+       ),
     );
   }
 
@@ -198,21 +200,24 @@ class SettingsPanelWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: const Color(0xFFDAA520), size: 16),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-              const Spacer(),
-              Text(
-                '${(value * 100).round()}%',
-                style: const TextStyle(color: Color(0xFFDAA520), fontSize: 12),
-              ),
-            ],
-          ),
+           Row(
+             children: [
+               Icon(icon, color: const Color(0xFFDAA520), size: 16),
+               const SizedBox(width: 8),
+               Expanded(
+                 child: Text(
+                   title,
+                   style: const TextStyle(color: Colors.white, fontSize: 12),
+                   overflow: TextOverflow.ellipsis,
+                 ),
+               ),
+               const SizedBox(width: 8),
+               Text(
+                 '${(value * 100).round()}%',
+                 style: const TextStyle(color: Color(0xFFDAA520), fontSize: 12),
+               ),
+             ],
+           ),
           SliderTheme(
             data: SliderThemeData(
               trackHeight: 3,
@@ -240,21 +245,25 @@ class SettingsPanelWidget extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white54, size: 14),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title,
-                  style: const TextStyle(color: Colors.white54, fontSize: 11)),
-              Text(subtitle,
-                  style: const TextStyle(color: Colors.white38, fontSize: 9)),
-            ],
-          ),
-        ],
-      ),
+       child: Row(
+         children: [
+           Icon(icon, color: Colors.white54, size: 14),
+           const SizedBox(width: 10),
+           Expanded(
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 Text(title,
+                     style: const TextStyle(color: Colors.white54, fontSize: 11),
+                     overflow: TextOverflow.ellipsis),
+                 Text(subtitle,
+                     style: const TextStyle(color: Colors.white38, fontSize: 9),
+                     overflow: TextOverflow.ellipsis),
+               ],
+             ),
+           ),
+         ],
+       ),
     );
   }
 

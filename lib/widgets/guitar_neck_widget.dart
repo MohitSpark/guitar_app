@@ -125,7 +125,7 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
           ),
           const Spacer(),
           TextButton.icon(
-            onPressed: () => _showCapoDialog(context, provider),
+            onPressed: () {},
             icon: const Icon(Icons.music_note,
                 size: 12, color: Color(0xFFDAA520)),
             label: Text(
@@ -264,50 +264,6 @@ class _GuitarNeckWidgetState extends State<GuitarNeckWidget>
           ),
           const SizedBox(width: 8),
         ],
-      ),
-    );
-  }
-
-  void _showCapoDialog(BuildContext context, GuitarProvider provider) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2d1500),
-        title:
-        const Text('Set Capo', style: TextStyle(color: Color(0xFFDAA520))),
-        content: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: List.generate(
-            8,
-                (i) => GestureDetector(
-              onTap: () {
-                provider.setCapo(i);
-                Navigator.pop(ctx);
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: provider.capoFret == i
-                      ? const Color(0xFFDAA520)
-                      : const Color(0xFF5C2A00),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    i == 0 ? 'Off' : '$i',
-                    style: TextStyle(
-                      color:
-                      provider.capoFret == i ? Colors.black : Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
