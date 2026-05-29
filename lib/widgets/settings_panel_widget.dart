@@ -271,25 +271,40 @@ class SettingsPanelWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2d1500),
-        title: const Text('Reset Settings?',
-            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF2d2d2d),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.refresh_rounded, color: Colors.redAccent, size: 20),
+            SizedBox(width: 10),
+            Text('Reset Settings?', style: TextStyle(color: Colors.white, fontSize: 16)),
+          ],
+        ),
         content: const Text(
-          'This will reset all settings to their defaults.',
-          style: TextStyle(color: Colors.white54),
+          'All settings will be restored to their defaults. This cannot be undone.',
+          style: TextStyle(color: Colors.white54, fontSize: 13, height: 1.6),
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(ctx),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white70,
+              side: const BorderSide(color: Colors.white24),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             child: const Text('Cancel'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               if (provider.isMuted) provider.toggleMute();
               provider.setVolume(0.8);
               Navigator.pop(ctx);
             },
-            child: const Text('Reset', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const Text('Reset', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
