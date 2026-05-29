@@ -273,8 +273,8 @@ class SettingsPanelWidget extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF2d2d2d),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: const [
+        title: const Row(
+          children: [
             Icon(Icons.refresh_rounded, color: Colors.redAccent, size: 20),
             SizedBox(width: 10),
             Text('Reset Settings?', style: TextStyle(color: Colors.white, fontSize: 16)),
